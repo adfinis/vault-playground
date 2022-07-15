@@ -1,5 +1,3 @@
-[TOC]
-
 # Vault Identity and Group Management Playground
 
 This repository provides a playground and some Terraform bootstrap code to experiment and explore identity and group management with HashiCorp Vault.

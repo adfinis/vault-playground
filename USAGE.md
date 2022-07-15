@@ -1,5 +1,3 @@
-[TOC]
-
 # Usage Instructions
 
 ## 1. Vault Enterprise License
