@@ -163,7 +163,7 @@ sudo rm -rf docker/terraform/.terraform
 
 ## What is an Alias in Vault
 
-The Alias maps an Entity (or group) to an external user (or authentication backend) (via "accessor").
+The [Alias](https://learn.hashicorp.com/tutorials/vault/identity) maps an Entity (or group) to an external user (or authentication backend) (via "accessor").
 
 - Entities can have many entity aliases (1:n)
 - A group can only have one group alias (1:1)
