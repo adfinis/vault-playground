@@ -1,0 +1,163 @@
+version: "3.9"
+
+services:
+  keycloak:
+      # https://github.com/keycloak/keycloak-containers#getting-started
+      image: quay.io/keycloak/keycloak:legacy
+      container_name: keycloak
+      hostname: keycloak.identity.net
+      networks:
+        - identity.net
+      environment:
+        DB_VENDOR: POSTGRES
+        DB_ADDR: keycloak-postgres
+        DB_DATABASE: keycloak
+        DB_USER: keycloak
+        DB_SCHEMA: public
+        DB_PASSWORD: password
+        KEYCLOAK_USER: admin
+        KEYCLOAK_PASSWORD: admin
+      ports:
+        - 8080:8080
+      depends_on:
+        - keycloak-postgres
+  keycloak-postgres:
+      image: postgres
+      container_name: keycloak-postgres
+      hostname: keycloak-postgres.identity.net
+      networks:
+        - identity.net
+      volumes:
+        - ./docker/keycloak-postgres:/var/lib/postgresql/data
+      environment:
+        POSTGRES_DB: keycloak
+        POSTGRES_USER: keycloak
+        POSTGRES_PASSWORD: password
+
+  ipa:
+    image: freeipa/freeipa-server:centos-8-4.9.6
+    command: ipa-server-install -U -r IDENTITY.NET --no-ntp
+    environment:
+      PASSWORD: Secret123
+    container_name: ipa
+    # Container needs to be invoked with fully-qualified hostname
+    hostname: ipa.identity.net
+    networks:
+      - identity.net
+    volumes:
+      - ./docker/ipa:/data:Z
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+
+  vault:
+    image: hashicorp/vault-enterprise:latest
+    container_name: vault
+    hostname: vault.identity.net
+    cap_add:
+      - IPC_LOCK
+    networks:
+      - identity.net
+    command: server
+    volumes:
+      - ./docker/vault/config:/vault/config
+      - ./docker/vault/data:/vault/file
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_TOKEN=root
+      - VAULT_LICENSE=$VAULT_LICENSE
+      - VAULT_RAFT_NODE_ID=node0
+      - VAULT_API_ADDR=http://vault:8200
+      - VAULT_CLUSTER_ADDR=http://vault:8201
+    ports:
+      - 8200:8200
+      - 8201:8201
+
+  terraform:
+    build:
+      context: ./terraform-dockerfile
+      dockerfile: Dockerfile
+    container_name: terraform
+    hostname: terraform.identity.net
+    networks:
+      - identity.net
+    # remove state from old Vault dev mode, init, re-apply and leave running for debugging purposes
+    entrypoint: /bin/sh -c 'terraform init && terraform apply -auto-approve'
+    working_dir: "/terraform"
+    environment:
+      # - TF_LOG=debug
+      - VAULT_ADDR=http://vault.identity.net:8200
+      - VAULT_TOKEN=root
+      - CHECKPOINT_DISABLE=true
+    volumes:
+      - ./docker/terraform:/terraform
+      - ./docker/k3s/output:/root/.kube
+    depends_on:
+      - keycloak
+      - k3s-server
+
+  k3s-server:
+    # https://github.com/k3s-io/k3s/blob/master/docker-compose.yml
+    image: "rancher/k3s:${K3S_VERSION:-latest}"
+    container_name: k3s-server
+    hostname: k3s-server.identity.net
+    networks:
+      - identity.net
+    command: server
+    tmpfs:
+      - /run
+      - /var/run
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+    privileged: true
+    environment:
+      - K3S_TOKEN=${K3S_TOKEN:-k3s}
+      - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
+      - K3S_KUBECONFIG_MODE=666
+    volumes:
+      - ./docker/k3s:/var/lib/rancher/k3s
+      # Needs to be a shared mount for Kubernetes CSI Drivers
+      # (Pod volume sharing, mount propagation):
+      # https://kubernetes-csi.github.io/docs/deploying.html
+      - /tmp/k3s-local-pods:/var/lib/kubelet:shared
+      # This is just so that we get the kubeconfig file out
+      - ./docker/k3s/output:/output
+    ports:
+      - 6443:6443 # Kubernetes API Server
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    hostname: grafana.identity.net
+    networks:
+      - identity.net
+    ports:
+      - 3000:3000
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      # - ./docker/grafana_data:/var/lib/grafana
+      - ./docker/grafana_provisioning:/etc/grafana/provisioning
+      - ./docker/grafana_dashboards:/var/lib/grafana/dashboards
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    hostname: prometheus.identity.net
+    networks:
+      - identity.net
+    volumes:
+      - ./docker/prometheus_etc/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./docker/prometheus_etc/vault_rules.yml:/etc/prometheus/vault_rules.yml
+      #sudo chown -R nobody: docker/prometheus_data/
+      # - ./docker/prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+
+networks:
+  identity.net:

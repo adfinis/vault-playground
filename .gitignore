@@ -1,0 +1,12 @@
+vault-keys.json
+*.hclic
+docker/ipa
+docker/k3s
+docker/keycloak-postgres
+docker/vault/data
+docker/vault/config/tls/*
+docker/terraform/*.tfstate*
+docker/terraform/*.lock.hcl
+docker/terraform/.terraform
+docker/prometheus_data/*
+docker/grafana_data/*

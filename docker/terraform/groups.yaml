@@ -1,0 +1,11 @@
+---
+
+groups:
+  testgroup:
+    namespaces:
+      tenant: {}
+      tenant2: {}
+      tenant3: {}
+    metadata:
+      owner: foo@bar.com
+      cost_center: FooBar

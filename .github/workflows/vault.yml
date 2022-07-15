@@ -1,0 +1,28 @@
+name: Read Vault Secrets
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+env:
+  VAULT_ADDR: http://127.0.0.1:8200
+jobs:
+  configure:
+    permissions:
+        contents: read
+        id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure Vault Credentials (VAULT_TOKEN) and read Foo secret
+        uses: hashicorp/vault-action@v2.4.1
+        with:
+          url: ${{ env.VAULT_ADDR }}
+          #tlsSkipVerify: true
+          method: jwt
+          path: github-workflow
+          role: default
+          jwtGithubAudience: https://github.com/adfinis-sygroup
+          exportToken: true
+          secrets: |
+            auth/token/lookup-self display_name | NAME ;
+            tenant/kv/data/foo-secret | FOO_SECRET
