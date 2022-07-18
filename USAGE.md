@@ -163,15 +163,16 @@ sudo rm -rf docker/terraform/.terraform
 
 ## What is an Alias in Vault
 
-The Alias maps an Entity (or group) to an authentication backend (via "accessor").
+The [Alias](https://learn.hashicorp.com/tutorials/vault/identity) maps an Entity (or group) to an external user (or authentication backend) (via "accessor").
 
-An entity (or group) can have many entity aliases (or group alias).
+- Entities can have many entity aliases (1:n)
+- A group can only have one group alias (1:1)
 
 ## What is an Entity
 
 The entity is the unique representation of a "client" in Vault.
 
-The entity is identified by the [unique mount bound alias](https://www.vaultproject.io/docs/concepts/identity#mount-bound-aliases) automatically created on the first authentication attempt (, if not created beforehand).
+The entity is identified by the [unique mount bound alias](https://www.vaultproject.io/docs/concepts/identity#mount-bound-aliases) automatically created on the first authentication attempt (if not created beforehand).
 
 ## How is a Vault Client or Entity identified in Vault
 
