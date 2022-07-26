@@ -13,6 +13,10 @@ The repository currently focuses on integration with the following authenticatio
 
 ## Prerequisites
 
+The playground runs with either docker or podman. The prerequisites slightly differ.
+
+### docker
+
 Install `docker-compose`, `kubectl` and `helm` on your local machine.
 
 Use v1 cgroups or the v1 compatibility mode on v2 systems for the FreeIPA container to work correctly, see:
@@ -23,6 +27,14 @@ To enable v1 compatibility set the kernel parameter:
 ```
 systemd.unified_cgroup_hierarchy=0
 ```
+
+### podman
+
+Install `podman-compose`, `containernetworking-plugins`, `kubectl` and `helm` on your local machine.
+
+
+*Tested with Fedora 36*
+
 
 ## Usage Instructions and FAQ
 

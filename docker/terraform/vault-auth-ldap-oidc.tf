@@ -3,7 +3,7 @@
 # - https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/ldap_auth_backend
 resource "vault_ldap_auth_backend" "ldap" {
   path         = "ldap"
-  url          = "ldaps://ipa.identity.net"
+  url          = "ldaps://ipa.${var.container_domain}"
   insecure_tls = true
   userdn       = "cn=users,cn=accounts,dc=identity,dc=net"
   userattr     = "uid"
@@ -20,7 +20,7 @@ resource "vault_jwt_auth_backend" "oidc" {
   type         = "oidc"
   default_role = "default"
   # https://www.keycloak.org/docs/latest/securing_apps
-  oidc_discovery_url = "http://keycloak.identity.net:8080/auth/realms/${keycloak_realm.realm.realm}"
+  oidc_discovery_url = "http://keycloak.${var.container_domain}:8080/auth/realms/${keycloak_realm.realm.realm}"
   oidc_client_id     = keycloak_openid_client.openid_client.client_id
   oidc_client_secret = keycloak_openid_client.openid_client.client_secret
 }
@@ -34,7 +34,7 @@ resource "vault_jwt_auth_backend_role" "keycloak" {
   role_type    = "oidc"
   # https://www.vaultproject.io/docs/auth/jwt#redirect-uris
   allowed_redirect_uris = [
-    "http://vault.identity.net:8200/ui/vault/auth/oidc/oidc/callback",
+    "http://vault.${var.container_domain}:8200/ui/vault/auth/oidc/oidc/callback",
     "http://localhost:8250/oidc/callback"
   ]
   # verbose_oidc_logging = true

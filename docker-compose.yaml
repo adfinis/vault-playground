@@ -5,9 +5,9 @@ services:
       # https://github.com/keycloak/keycloak-containers#getting-started
       image: quay.io/keycloak/keycloak:legacy
       container_name: keycloak
-      hostname: keycloak.identity.net
+      hostname: "keycloak.${CONTAINER_DOMAIN}"
       networks:
-        - identity.net
+        - vault-playground
       environment:
         DB_VENDOR: POSTGRES
         DB_ADDR: keycloak-postgres
@@ -22,11 +22,11 @@ services:
       depends_on:
         - keycloak-postgres
   keycloak-postgres:
-      image: postgres
+      image: docker.io/library/postgres
       container_name: keycloak-postgres
-      hostname: keycloak-postgres.identity.net
+      hostname: "keycloak-postgres.${CONTAINER_DOMAIN}"
       networks:
-        - identity.net
+        - vault-playground
       volumes:
         - ./docker/keycloak-postgres:/var/lib/postgresql/data:Z
       environment:
@@ -35,15 +35,15 @@ services:
         POSTGRES_PASSWORD: password
 
   ipa:
-    image: freeipa/freeipa-server:centos-8-4.9.6
-    command: ipa-server-install -U -r IDENTITY.NET --no-ntp
+    image: docker.io/freeipa/freeipa-server:centos-8-4.9.6
+    command: "ipa-server-install -U -r ${IPA_REALM} --no-ntp"
     environment:
       PASSWORD: Secret123
     container_name: ipa
     # Container needs to be invoked with fully-qualified hostname
-    hostname: ipa.identity.net
+    hostname: "ipa.${CONTAINER_DOMAIN}"
     networks:
-      - identity.net
+      - vault-playground
     volumes:
       - ./docker/ipa:/data:Z
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
@@ -51,13 +51,13 @@ services:
       - net.ipv6.conf.all.disable_ipv6=0
 
   vault:
-    image: hashicorp/vault-enterprise:latest
+    image: docker.io/hashicorp/vault-enterprise:latest
     container_name: vault
-    hostname: vault.identity.net
+    hostname: "vault.${CONTAINER_DOMAIN}"
     cap_add:
       - IPC_LOCK
     networks:
-      - identity.net
+      - vault-playground
     command: server
     volumes:
       - ./docker/vault/config:/vault/config:Z
@@ -78,17 +78,18 @@ services:
       context: ./terraform-dockerfile
       dockerfile: Dockerfile
     container_name: terraform
-    hostname: terraform.identity.net
+    hostname: "terraform.${CONTAINER_DOMAIN}"
     networks:
-      - identity.net
+      - vault-playground
     # remove state from old Vault dev mode, init, re-apply and leave running for debugging purposes
     entrypoint: /bin/sh -c 'terraform init && terraform apply -auto-approve'
     working_dir: "/terraform"
     environment:
       # - TF_LOG=debug
-      - VAULT_ADDR=http://vault.identity.net:8200
+      - VAULT_ADDR=http://vault.${CONTAINER_DOMAIN}:8200
       - VAULT_TOKEN=root
       - CHECKPOINT_DISABLE=true
+      - TF_VAR_container_domain=${CONTAINER_DOMAIN}
     volumes:
       - ./docker/terraform:/terraform:Z
       - ./docker/k3s/output:/root/.kube:Z
@@ -98,11 +99,11 @@ services:
 
   k3s-server:
     # https://github.com/k3s-io/k3s/blob/master/docker-compose.yml
-    image: "rancher/k3s:${K3S_VERSION:-latest}"
+    image: "docker.io/rancher/k3s:${K3S_VERSION:-latest}"
     container_name: k3s-server
-    hostname: k3s-server.identity.net
+    hostname: "k3s-server.${CONTAINER_DOMAIN}"
     networks:
-      - identity.net
+      - vault-playground
     command: server
     tmpfs:
       - /run
@@ -129,11 +130,11 @@ services:
       - 6443:6443 # Kubernetes API Server
 
   grafana:
-    image: grafana/grafana:latest
+    image: docker.io/grafana/grafana:latest
     container_name: grafana
-    hostname: grafana.identity.net
+    hostname: "grafana.${CONTAINER_DOMAIN}"
     networks:
-      - identity.net
+      - vault-playground
     ports:
       - 3000:3000
     environment:
@@ -144,11 +145,11 @@ services:
       - ./docker/grafana_dashboards:/var/lib/grafana/dashboards:Z
 
   prometheus:
-    image: prom/prometheus:latest
+    image: docker.io/prom/prometheus:latest
     container_name: prometheus
-    hostname: prometheus.identity.net
+    hostname: "prometheus.${CONTAINER_DOMAIN}"
     networks:
-      - identity.net
+      - vault-playground
     volumes:
       - ./docker/prometheus_etc/prometheus.yml:/etc/prometheus/prometheus.yml:Z
       - ./docker/prometheus_etc/vault_rules.yml:/etc/prometheus/vault_rules.yml:Z
@@ -160,4 +161,4 @@ services:
       - 9090:9090
 
 networks:
-  identity.net:
+  vault-playground:
