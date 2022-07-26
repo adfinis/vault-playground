@@ -28,7 +28,7 @@ services:
       networks:
         - identity.net
       volumes:
-        - ./docker/keycloak-postgres:/var/lib/postgresql/data
+        - ./docker/keycloak-postgres:/var/lib/postgresql/data:Z
       environment:
         POSTGRES_DB: keycloak
         POSTGRES_USER: keycloak
@@ -60,8 +60,8 @@ services:
       - identity.net
     command: server
     volumes:
-      - ./docker/vault/config:/vault/config
-      - ./docker/vault/data:/vault/file
+      - ./docker/vault/config:/vault/config:Z
+      - ./docker/vault/data:/vault/file:Z
     environment:
       - VAULT_ADDR=http://127.0.0.1:8200
       - VAULT_TOKEN=root
@@ -90,8 +90,8 @@ services:
       - VAULT_TOKEN=root
       - CHECKPOINT_DISABLE=true
     volumes:
-      - ./docker/terraform:/terraform
-      - ./docker/k3s/output:/root/.kube
+      - ./docker/terraform:/terraform:Z
+      - ./docker/k3s/output:/root/.kube:Z
     depends_on:
       - keycloak
       - k3s-server
@@ -118,13 +118,13 @@ services:
       - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
       - K3S_KUBECONFIG_MODE=666
     volumes:
-      - ./docker/k3s:/var/lib/rancher/k3s
+      - ./docker/k3s:/var/lib/rancher/k3s:Z
       # Needs to be a shared mount for Kubernetes CSI Drivers
       # (Pod volume sharing, mount propagation):
       # https://kubernetes-csi.github.io/docs/deploying.html
       - /tmp/k3s-local-pods:/var/lib/kubelet:shared
       # This is just so that we get the kubeconfig file out
-      - ./docker/k3s/output:/output
+      - ./docker/k3s/output:/output:Z
     ports:
       - 6443:6443 # Kubernetes API Server
 
@@ -140,8 +140,8 @@ services:
       - GF_INSTALL_PLUGINS=grafana-piechart-panel
     volumes:
       # - ./docker/grafana_data:/var/lib/grafana
-      - ./docker/grafana_provisioning:/etc/grafana/provisioning
-      - ./docker/grafana_dashboards:/var/lib/grafana/dashboards
+      - ./docker/grafana_provisioning:/etc/grafana/provisioning:Z
+      - ./docker/grafana_dashboards:/var/lib/grafana/dashboards:Z
 
   prometheus:
     image: prom/prometheus:latest
@@ -150,8 +150,8 @@ services:
     networks:
       - identity.net
     volumes:
-      - ./docker/prometheus_etc/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./docker/prometheus_etc/vault_rules.yml:/etc/prometheus/vault_rules.yml
+      - ./docker/prometheus_etc/prometheus.yml:/etc/prometheus/prometheus.yml:Z
+      - ./docker/prometheus_etc/vault_rules.yml:/etc/prometheus/vault_rules.yml:Z
       #sudo chown -R nobody: docker/prometheus_data/
       # - ./docker/prometheus_data:/prometheus
     command:
