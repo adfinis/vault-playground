@@ -692,7 +692,7 @@ The module can be implemented as part of an ordering pipeline.
 
 Use the GitHub action [`vault-action`](https://github.com/hashicorp/vault-action).
 
-An example worfklow with JWT authentication is provided in [`.github/workflows/vault.yml`](.github/workflows/vault.yml).
+An example worfklow with JWT authentication is provided in [`.github-example-workflow/workflows/vault.yml`](.github-example-workflow/workflows/vault.yml).
 
 The JWT authentication backend for the GitHub action needs to be prepared beforhand. This is automated in the Terraform file [`./docker/terraform/vault-github-workflow.tf`](./docker/terraform/vault-github-workflow.tf).
 
@@ -720,8 +720,8 @@ Enable JWT auth path and add the role with the policy:
 vault auth enable -path=github-workflow jwt
 
 vault write auth/github-workflow/config \
-        oidc_discovery_url="https://token.actions.githubusercontent.com" \
-        bound_issuer="https://token.actions.githubusercontent.com" \
+        oidc_discovery_url="https://token.actions.github-example-workflowusercontent.com" \
+        bound_issuer="https://token.actions.github-example-workflowusercontent.com" \
         default_role="default"
 
 # `token_num_uses` 0 required so that a TF provider for Vault
@@ -739,7 +739,7 @@ vault write auth/github-workflow/role/default -<<EOF
   "bound_claims_type": "glob",
   "bound_claims": {
     "repository": "adfinis-sygroup/vault-playground",
-    "job_workflow_ref": "adfinis-sygroup/vault-playground/.github/workflows/vault.yml*"
+    "job_workflow_ref": "adfinis-sygroup/vault-playground/.github-example-workflow/workflows/vault.yml*"
   },
   "bound_audiences": "https://github.com/adfinis-sygroup"
 }
@@ -749,5 +749,5 @@ EOF
 > :warning: **Globbing for Bound Claims Type**
 >
 > When not enabling globbing for the `bound_claims_type`, the authentication on the feature branches will not work properly and the GitHub action will fail, because the source ref or `job_workflow_ref` ends in `@refs/heads/<NAME_OF_FEATURE_BRANCH>`:
-> * https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#understanding-the-oidc-token
+> * https://docs.github-example-workflow.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#understanding-the-oidc-token
 > * https://github.com/hashicorp/vault-action#jwt-with-github-oidc-tokens
