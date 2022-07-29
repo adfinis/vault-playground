@@ -739,7 +739,7 @@ vault write auth/github-workflow/role/default -<<EOF
   "bound_claims_type": "glob",
   "bound_claims": {
     "repository": "adfinis-sygroup/vault-playground",
-    "job_workflow_ref": "adfinis-sygroup/vault-playground/.github-example-workflow/workflows/vault.yml*"
+    "job_workflow_ref": "adfinis-sygroup/vault-playground/.github/workflows/vault.yml*"
   },
   "bound_audiences": "https://github.com/adfinis-sygroup"
 }
