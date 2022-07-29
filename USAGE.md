@@ -720,8 +720,8 @@ Enable JWT auth path and add the role with the policy:
 vault auth enable -path=github-workflow jwt
 
 vault write auth/github-workflow/config \
-        oidc_discovery_url="https://token.actions.github-example-workflowusercontent.com" \
-        bound_issuer="https://token.actions.github-example-workflowusercontent.com" \
+        oidc_discovery_url="https://token.actions.githubusercontent.com" \
+        bound_issuer="https://token.actions.githubusercontent.com" \
         default_role="default"
 
 # `token_num_uses` 0 required so that a TF provider for Vault
@@ -749,5 +749,5 @@ EOF
 > :warning: **Globbing for Bound Claims Type**
 >
 > When not enabling globbing for the `bound_claims_type`, the authentication on the feature branches will not work properly and the GitHub action will fail, because the source ref or `job_workflow_ref` ends in `@refs/heads/<NAME_OF_FEATURE_BRANCH>`:
-> * https://docs.github-example-workflow.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#understanding-the-oidc-token
+> * https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#understanding-the-oidc-token
 > * https://github.com/hashicorp/vault-action#jwt-with-github-oidc-tokens
