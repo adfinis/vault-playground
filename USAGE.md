@@ -692,7 +692,7 @@ The module can be implemented as part of an ordering pipeline.
 
 Use the GitHub action [`vault-action`](https://github.com/hashicorp/vault-action).
 
-An example worfklow with JWT authentication is provided in [`.github/workflows/vault.yml`](.github/workflows/vault.yml).
+An example worfklow with JWT authentication is provided in [`.github-example-workflow/workflows/vault.yml`](.github-example-workflow/workflows/vault.yml).
 
 The JWT authentication backend for the GitHub action needs to be prepared beforhand. This is automated in the Terraform file [`./docker/terraform/vault-github-workflow.tf`](./docker/terraform/vault-github-workflow.tf).
 
