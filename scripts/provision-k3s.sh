@@ -16,7 +16,7 @@ APP_NAMESPACE=vault-app
 APP_SERVICEACCOUNT=vault-kv
 # Define variables regarding the secret for the test Pod
 SECRETPROVIDERCLASS_NAME=vault-secret
-VAULT_ADDR="http://vault.identity.net:8200"
+VAULT_ADDR="http://vault.${CONTAINER_DOMAIN}:8200"
 
 # Patch CoreDNS to resolve the Vault Docker container name
 # https://coredns.io/2017/06/08/how-queries-are-processed-in-coredns
@@ -32,7 +32,7 @@ data:
           pods insecure
           fallthrough in-addr.arpa ip6.arpa
         }
-        file /etc/coredns/identity.db identity.net
+        file /etc/coredns/identity.db ${CONTAINER_DOMAIN} 
         hosts /etc/coredns/NodeHosts {
           ttl 60
           reload 15s
@@ -46,8 +46,8 @@ data:
         loadbalance
     }
   identity.db: |
-    identity.net.               IN      SOA     ns.identity.net. hostmaster.identity.net. 2021102901 7200 3600 1209600 3600
-    vault.identity.net.         IN      A       $VAULT_IP
+    ${CONTAINER_DOMAIN}.               IN      SOA     ns.${CONTAINER_DOMAIN}. hostmaster.${CONTAINER_DOMAIN}. 2021102901 7200 3600 1209600 3600
+    vault.${CONTAINER_DOMAIN}.         IN      A       $VAULT_IP
 EOF
 )"
 

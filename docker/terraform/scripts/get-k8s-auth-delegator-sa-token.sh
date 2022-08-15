@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Set K3s server
-sed -i 's/127.0.0.1/k3s-server.identity.net/g' /root/.kube/config
+sed -i "s/127.0.0.1/k3s-server.$1/g" /root/.kube/config
 
 # Get Token Reviewer JWT
 TOKEN=$(

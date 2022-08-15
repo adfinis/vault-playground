@@ -2,11 +2,16 @@ provider "keycloak" {
   client_id = "admin-cli"
   username  = "admin"
   password  = "admin"
-  url       = "http://keycloak.identity.net:8080"
+  url       = "http://keycloak.${var.container_domain}:8080"
+}
+
+locals {
+  container_domain_dc1 = split(".", var.container_domain)[0]
+  container_domain_dc2 = split(".", var.container_domain)[1]
 }
 
 resource "keycloak_realm" "realm" {
-  realm   = "Identity-Net"
+  realm   = join("-", split(".", var.container_domain))
   enabled = true
 }
 
@@ -24,9 +29,9 @@ resource "keycloak_ldap_user_federation" "ldap_user_federation" {
     "inetOrgPerson",
     "organizationalPerson"
   ]
-  connection_url  = "ldap://ipa.identity.net"
-  users_dn        = "cn=users,cn=accounts,dc=identity,dc=net"
-  bind_dn         = "uid=admin,cn=users,cn=accounts,dc=identity,dc=net"
+  connection_url  = "ldap://ipa.${var.container_domain}"
+  users_dn        = "cn=users,cn=accounts,dc=${local.container_domain_dc1},dc=${local.container_domain_dc2}"
+  bind_dn         = "uid=admin,cn=users,cn=accounts,dc=${local.container_domain_dc1},dc=${local.container_domain_dc2}"
   bind_credential = "Secret123"
 }
 
@@ -35,7 +40,7 @@ resource "keycloak_ldap_group_mapper" "ldap_group_mapper" {
   ldap_user_federation_id = keycloak_ldap_user_federation.ldap_user_federation.id
   name                    = "groups"
 
-  ldap_groups_dn            = "cn=groups,cn=accounts,dc=identity,dc=net"
+  ldap_groups_dn            = "cn=groups,cn=accounts,dc=${local.container_domain_dc1},dc=${local.container_domain_dc2}"
   group_name_ldap_attribute = "cn"
   group_object_classes = [
     "groupOfNames"
@@ -53,14 +58,14 @@ resource "keycloak_openid_client" "openid_client" {
   realm_id  = keycloak_realm.realm.id
   client_id = "hashicorp-vault"
 
-  name    = "HashiCorp Vault vault.identity.net"
+  name    = "HashiCorp Vault vault.${var.container_domain}"
   enabled = true
 
   access_type           = "CONFIDENTIAL"
   standard_flow_enabled = true
   valid_redirect_uris = [
     "http://localhost:8250/oidc/callback",
-    "http://vault.identity.net:8200/ui/vault/auth/oidc/oidc/callback"
+    "http://vault.${var.container_domain}:8200/ui/vault/auth/oidc/oidc/callback"
   ]
 }
 resource "keycloak_generic_client_protocol_mapper" "groups" {

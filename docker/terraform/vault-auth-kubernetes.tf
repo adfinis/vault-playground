@@ -1,8 +1,8 @@
 data "external" "cacerts" {
-  program = ["sh", "${path.root}/scripts/get-cacerts.sh"]
+  program = ["sh", "${path.root}/scripts/get-cacerts.sh", "${var.container_domain}"]
 }
 data "external" "auth_delegator_sa_token" {
-  program = ["sh", "${path.root}/scripts/get-k8s-auth-delegator-sa-token.sh"]
+  program = ["sh", "${path.root}/scripts/get-k8s-auth-delegator-sa-token.sh", "${var.container_domain}"]
 }
 
 resource "vault_auth_backend" "kubernetes" {
@@ -11,7 +11,7 @@ resource "vault_auth_backend" "kubernetes" {
 
 resource "vault_kubernetes_auth_backend_config" "kubernetes" {
   backend            = vault_auth_backend.kubernetes.path
-  kubernetes_host    = "https://k3s-server.identity.net:6443"
+  kubernetes_host    = "https://k3s-server.${var.container_domain}:6443"
   kubernetes_ca_cert = data.external.cacerts.result.cacerts
   issuer             = "https://kubernetes.default.svc.cluster.local"
   # token_reviewer_jwt = data.external.auth_delegator_sa_token.result.token

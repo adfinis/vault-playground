@@ -18,7 +18,7 @@
       }
     ]
   },
-  "description": "Demo dashboard for Vault Identity Net",
+  "description": "Demo dashboard for Vault",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -973,7 +973,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Vault Identity Net",
+  "title": "Vault Demo",
   "uid": "dQwRshe7z",
   "version": 1,
   "weekStart": ""

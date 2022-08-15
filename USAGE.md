@@ -3,34 +3,97 @@
 ## 1. Vault Enterprise License
 Retrieve a [Vault Enterprise trial license](https://www.hashicorp.com/products/vault/trial).
 
-Export the license in your shell environment:
-```yaml
-export VAULT_LICENSE=02MV4UU..
+## 2. Setup environment
+Export environment variables in a shell for
+
+* the Vault license
+  ```vash
+  export VAULT_LICENSE=02MV4UU..
+  ```
+* the runtime you're going to use
+  ```bash
+  export CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
+  ```
+  *The default is `docker`. If podman is going to be used, change this to `podman`.*
+* the internal domain containers can be addressed with
+  ```bash
+  if [[ -z ${CONTAINER_RUNTIME##docker} ]];then export CONTAINER_DOMAIN=docker.internal; else export CONTAINER_DOMAIN=dns.podman; fi
+  ```
+  *uses `docker.internal` if docker is going to be used and `dns.podman` if podman. This does not need modification unless another domain name is required.*
+* the realm domain for the freeipa server
+  ```bash
+  export IPA_REALM=${CONTAINER_DOMAIN^^}
+  ```
+
+Or create a `.env` file for `(docker|podman)-compose`
+```bash
+# Example for podman
+CONTAINER_RUNTIME=podman
+VAULT_LICENSE=02MV4UU..
+echo CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker} > .env
+if [[ ${CONTAINER_RUNTIME} == "docker" ]]
+then
+  echo CONTAINER_DOMAIN=docker.internal
+else
+  echo CONTAINER_DOMAIN=dns.podman
+fi >> .env
+echo VAULT_LICENSE=${VAULT_LICENSE} >> .env
+echo IPA_REALM=${CONTAINER_DOMAIN^^} >> .env
 ```
 
-## 2. Start Containers
+## 3. Start Containers
 
 Start FreeIPA, Keycloak, Vault and K3s:
 ```bash
-docker-compose up -d
+sudo ${CONTAINER_RUNTIME}-compose up -d
 ```
 
-## 3. Setup Resolution of Domain Names
+## 4. Setup Resolution of Domain Names
 
+You can either add a static record for every container to your `/etc/hosts` file or configure systemd-resolved service with `resolvectl` to use the container environment internal DNS (recommended).
+
+### Option 1: Configuration using container internal dns (recommended)
+First, find out which interface is used
+```bash
+if [[ ${CONTAINER_RUNTIME} == "docker" ]]
+then
+  CONTAINER_NETWORK_ID=$(sudo ${CONTAINER_RUNTIME} network inspect vault-playground_vault-playground | jq -j '.[].Id')
+  CONTAINER_RUNTIME_IF=br-${CONTAINER_NETWORK_ID::12}
+else
+  CONTAINER_RUNTIME_IF=$(sudo ${CONTAINER_RUNTIME} network inspect vault-playground_vault-playground | jq -j '.[].network_interface')
+fi
+```
+which IP it has assigned
+```bash
+CONTAINER_RUNTIME_IF_IP=$(ip -j -p -br -4 addr show dev ${CONTAINER_RUNTIME_IF} | jq -j '.[].addr_info | .[].local')
+```
+and then configure this interface to resolve the domain specified
+```bash
+sudo -E resolvectl dns ${CONTAINER_RUNTIME_IF} ${CONTAINER_RUNTIME_IF_IP}
+sudo -E resolvectl domain ${CONTAINER_RUNTIME_IF} ${CONTAINER_DOMAIN}
+```
+
+On systems with NetworkManager (no `systemd-networkd`/`systemd-resolved`) use:
+```bash
+nmcli c mod ${CONTAINER_RUNTIME_IF} ipv4.dns ${CONTAINER_RUNTIME_IF_IP}
+nmcli c mod ${CONTAINER_RUNTIME_IF} ipv4.dns-search ${CONTAINER_DOMAIN}
+```
+
+### Option 2: Static configuration using hosts file
 Add a static A record for the container hosting FreeIPA, Keycloak and Vault. Alternatively, adjust your `/etc/hosts` file accordingly:
 
 ```bash
-echo -e $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} ipa.identity.net{{end}}' ipa) | sudo tee -a /etc/hosts
-echo -e $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} keycloak.identity.net{{end}}' keycloak) | sudo tee -a /etc/hosts
-echo -e $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} vault.identity.net{{end}}' vault) | sudo tee -a /etc/hosts
-echo -e $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} k3s-server.identity.net{{end}}' k3s-server) | sudo tee -a /etc/hosts
-echo -e $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} grafana.identity.net{{end}}' grafana) | sudo tee -a /etc/hosts
-echo -e $(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} prometheus.identity.net{{end}}' prometheus) | sudo tee -a /etc/hosts
+echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} ipa.${CONTAINER_DOMAIN}{{end}}" ipa) | sudo tee -a /etc/hosts
+echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} keycloak.${CONTAINER_DOMAIN}{{end}}" keycloak) | sudo tee -a /etc/hosts
+echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} vault.${CONTAINER_DOMAIN}{{end}}" vault) | sudo tee -a /etc/hosts
+echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} k3s-server.${CONTAINER_DOMAIN}{{end}}" k3s-server) | sudo tee -a /etc/hosts
+echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} grafana.${CONTAINER_DOMAIN}{{end}}" grafana) | sudo tee -a /etc/hosts
+echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} prometheus.${CONTAINER_DOMAIN}{{end}}" prometheus) | sudo tee -a /etc/hosts
 ```
 
 You need to clean up your `/etc/hosts` after successive runs to remove conflicting entries from previous runs.
 
-## 4. Provision Test Identity/Group Data
+## 5. Provision Test Identity/Group Data
 
 This step provisions some identity and group test data, including:
 
@@ -54,15 +117,15 @@ This step provisions some identity and group test data, including:
 
 Booting the [server components](#5-Access-the-Playground) might take a while. Verify that all server components are started before bootstrapping:
 ```bash
-docker-compose logs -f ipa
-docker-compose logs -f keycloak
-docker-compose logs -f vault
-docker-compose logs -f k3s-server
+sudo ${CONTAINER_RUNTIME}-compose logs -f ipa
+sudo ${CONTAINER_RUNTIME}-compose logs -f keycloak
+sudo ${CONTAINER_RUNTIME}-compose logs -f vault
+sudo ${CONTAINER_RUNTIME}-compose logs -f k3s-server
 ```
 
 Initialize Vault:
 ```bash
-docker exec -it vault vault operator init -key-shares=1 -key-threshold=1 -format=json > vault-keys.json
+sudo ${CONTAINER_RUNTIME} exec -it vault vault operator init -key-shares=1 -key-threshold=1 -format=json > vault-keys.json
 ```
 
 Update `docker-compose` file with Vault root token:
@@ -76,24 +139,24 @@ sed -i 's/VAULT_TOKEN=.*$/VAULT_TOKEN='"$token"'/g' docker-compose.yaml
 Unseal Vault:
 ```bash
 sealkey=$(cat vault-keys.json | jq -r ".unseal_keys_b64[]")
-docker exec -it vault vault operator unseal $sealkey
+sudo ${CONTAINER_RUNTIME} exec -it vault vault operator unseal $sealkey
 ```
 
 Remove Terraform container and recreate with Vault Token from previous step:
 ```bash
-docker-compose rm terraform
-docker-compose up -d terraform
+sudo ${CONTAINER_RUNTIME}-compose stop terraform
+sudo ${CONTAINER_RUNTIME}-compose up -d terraform
 ```
 
 You might need to unseal Vault again (see above). Then start Terraform. Can be started repeatedly:
 ```bash
-docker-compose start terraform
+sudo ${CONTAINER_RUNTIME}-compose start terraform
 ```
 
 Provision the 389 directory with the test users and groups:
 ```bash
-docker cp scripts/provision-ldap.sh ipa:/tmp/
-docker exec -it ipa /tmp/provision-ldap.sh
+sudo ${CONTAINER_RUNTIME} cp scripts/provision-ldap.sh ipa:/tmp/
+sudo ${CONTAINER_RUNTIME} exec -it ipa /tmp/provision-ldap.sh
 ```
 
 Provision K3s with test app and Vault CSI Provider:
@@ -119,31 +182,31 @@ Persist it to the file [`docker/terraform/vault-auth-kubernetes.tf`](./docker/te
 
 Run Terraform to provision Vault and Keycloak:
 ```bash
-docker-compose rm terraform
-docker-compose up -d terraform
-docker-compose logs -f terraform
+sudo ${CONTAINER_RUNTIME}-compose rm terraform
+sudo ${CONTAINER_RUNTIME}-compose up -d terraform
+sudo ${CONTAINER_RUNTIME}-compose logs -f terraform
 ```
 
 This provides the basis for [authorizing a Kubernetes SA](#How-to-Authorize-Kubernetes-ServiceAccounts).
 
-## 5. Access the Playground
+## 6. Access the Playground
 
 | System | URI | Credentials |
 |---|---|---|
-| Vault | http://vault.identity.net:8200 (`VAULT_ADDR`) | `VAULT_TOKEN=root` |
-| FreeIPA | https://ipa.identity.net | Username: `admin`, Password: `Secret123` |
-| Keycloak | http://keycloak.identity.net:8080 | `KEYCLOAK_USER=admin`, `KEYCLOAK_PASSWORD=admin` |
+| Vault | http://vault.${CONTAINER_DOMAIN}:8200 (`VAULT_ADDR`) | `VAULT_TOKEN=root` |
+| FreeIPA | https://ipa.${CONTAINER_DOMAIN} | Username: `admin`, Password: `Secret123` |
+| Keycloak | http://keycloak.${CONTAINER_DOMAIN}:8080 | `KEYCLOAK_USER=admin`, `KEYCLOAK_PASSWORD=admin` |
 | Kubernetes API | https://127.0.0.1:6443 | see [How To Kubeconfig](#how-to-get-the-kubeconfig-for-k3s) below |
 | Grafana | http://127.0.0.1:3000 | Username: `admin`, Password: `admin` |
 | Prometheus | http://127.0.0.1:9090 | n/a |
 
-## 6. Stop Containers
+## 7. Stop Containers
 
 ```bash
-docker-compose down
+sudo ${CONTAINER_RUNTIME}-compose down
 ```
 
-## 7. Reset and Cleanup the Playground
+## 8. Reset and Cleanup the Playground
 
 Cleanup the hosts file from [step 4](#3-Setup-Resolution-of-Domain-Names).
 
@@ -222,7 +285,7 @@ To verify the capabilities, use the following procedure.
 
 Sign-in to Vault as administrator:
 ```bash
-VAULT_ADDR=http://vault.identity.net:8200
+VAULT_ADDR=http://vault.${CONTAINER_DOMAIN}:8200
 VAULT_TOKEN=$token
 ```
 
@@ -299,9 +362,9 @@ kubectl get sa vault-kv -n vault-app -o yaml | grep uid
 
 Run Terraform to provision Vault and Keycloak:
 ```bash
-docker-compose rm terraform
-docker-compose up -d terraform
-docker-compose logs -f terraform
+sudo ${CONTAINER_RUNTIME}-compose rm terraform
+sudo ${CONTAINER_RUNTIME}-compose up -d terraform
+sudo ${CONTAINER_RUNTIME}-compose logs -f terraform
 ```
 
 If all was provisioned and setup properly, this should return the Token used inside the app:
@@ -316,7 +379,7 @@ Each Vault Entity leaves an audit trail. Every action performed in Vault is reco
 
 We can use the playground here to generate an artificial audit trail. Get a shell in the Vault container:
 ```bash
-docker exec -it vault sh
+sudo ${CONTAINER_RUNTIME} exec -it vault sh
 ```
 
 [Enable the audit log](https://www.vaultproject.io/docs/audit/file) and [create an AppRole auth backend](https://www.vaultproject.io/docs/auth/approle  ):
@@ -408,7 +471,7 @@ vault read /identity/entity/name/entity_a8644122 -format=json
 
 Also, the Entity ID `8556a7b9-9c5a-d04e-01d8-017be4bf6781` can be traced down in the audit log. This is the audit trail:
 ```bash
-docker logs vault | grep 8556a7b9-9c5a-d04e-01d8-017be4bf6781 1>audit-trail.json
+sudo ${CONTAINER_RUNTIME} logs vault | grep 8556a7b9-9c5a-d04e-01d8-017be4bf6781 1>audit-trail.json
 cat audit-trail.json | jq
 ```
 
@@ -477,7 +540,7 @@ https://www.freeipa.org/page/HowTo/LDAP
 
 E.g., find all groups:
 ```bash
-docker exec -it ipa sh
+sudo ${CONTAINER_RUNTIME} exec -it ipa sh
 sh-4.4# ldapsearch -LLL -w Secret123 -D uid=admin,cn=users,cn=accounts,dc=identity,dc=net -b cn=groups,cn=accounts,dc=identity,dc=net
 ```
 
@@ -670,8 +733,8 @@ In the Raft storage section in file [`./docker/vault/config/raft-storage.hcl`](.
 Make sure to also unseal the additional two nodes.
 
 ```bash
-docker exec -it vault-1 vault operator unseal $sealkey
-docker exec -it vault-2 vault operator unseal $sealkey
+sudo ${CONTAINER_RUNTIME} exec -it vault-1 vault operator unseal $sealkey
+sudo ${CONTAINER_RUNTIME} exec -it vault-2 vault operator unseal $sealkey
 ```
 
 Keep in mind, that some use cases (like OIDC authenticatin) will require change in the `VAULT_ADDR` (e.g., OIDC redirect URL).

@@ -10,3 +10,4 @@ docker/terraform/*.lock.hcl
 docker/terraform/.terraform
 docker/prometheus_data/*
 docker/grafana_data/*
+.env
