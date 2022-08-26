@@ -19,7 +19,7 @@ resource "vault_identity_group_alias" "group_alias" {
 # For each Admin group, create internal group inside the customer namespace
 resource "vault_identity_group" "internal_group" {
   for_each = var.namespaces
-  name     = "${each.key}_admin"
+  name     = "${each.key}_${vault_identity_group.external_group.name}_admin"
   member_group_ids = [
     vault_identity_group.external_group.id
   ]
