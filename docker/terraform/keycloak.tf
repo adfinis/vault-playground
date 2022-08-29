@@ -90,7 +90,7 @@ resource "keycloak_openid_client" "jwt_client" {
 resource "keycloak_generic_client_protocol_mapper" "openid_client_groups" {
   realm_id        = keycloak_realm.realm.id
   client_id       = keycloak_openid_client.openid_client.id
-  name            = "groups"
+  name            = "groups-vault-oidc"
   protocol        = "openid-connect"
   protocol_mapper = "oidc-group-membership-mapper"
   config = {
@@ -105,7 +105,7 @@ resource "keycloak_generic_client_protocol_mapper" "openid_client_groups" {
 resource "keycloak_generic_client_protocol_mapper" "jwt_client_groups" {
   realm_id        = keycloak_realm.realm.id
   client_id       = keycloak_openid_client.jwt_client.id
-  name            = "groups"
+  name            = "groups-vault-jwt"
   protocol        = "openid-connect"
   protocol_mapper = "oidc-group-membership-mapper"
   config = {
