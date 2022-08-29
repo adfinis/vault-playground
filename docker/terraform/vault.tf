@@ -22,17 +22,13 @@ resource "vault_namespace" "namespace" {
 }
 
 # Authorization on namespaces
-# TODO: RENAME MODULE
 module "groups" {
   for_each   = local.groups
   source     = "./groups"
   namespaces = each.value.namespaces
   group      = each.key
   metadata   = each.value.metadata
-  depends_on = [vault_jwt_auth_backend.oidc, vault_namespace.namespace]
-  # admin_groups   = jsonencode(local.groups_to_namespaces)
-  # TODO: add same logic for supplemental_groups admin_groups
-  #supplemental_groups = local.supplemental_groups
+  depends_on = [vault_jwt_auth_backend.oidc, vault_jwt_auth_backend.jwt, vault_namespace.namespace]
 }
 
 # KV engine inside the namespace
