@@ -277,21 +277,31 @@ The access is only granted for LDAP logins, because the Entity Alias is connecte
 This playground also has a JWT authentication backend available. Configuration is basically the same as for the OIDC authentication backend. The difference is that a token fetched from keycloak can be used directly to log into Vault.
 
 Fetch token
-```
+```bash
 username=test
 password=test
-curl -L -X POST "http://keycloak.${CONTAINER_DOMAIN}:8080/auth/realms/${CONTAINER_DOMAIN//\./-}/protocol/openid-connect/token" \
+curl -s -L -X POST "http://keycloak.${CONTAINER_DOMAIN}:8080/auth/realms/${CONTAINER_DOMAIN//\./-}/protocol/openid-connect/token" \
 -H 'Content-Type: application/x-www-form-urlencoded' \
 --data-urlencode 'client_id=hashicorp-vault-jwt' \
 --data-urlencode 'grant_type=password' \
 --data-urlencode 'scope=openid' \
 --data-urlencode "username=${username}" \
---data-urlencode "password=${username}"
+--data-urlencode "password=${password}" > jwt.json
 ``` 
 
-Login with "access_token"
-```
-vault write auth/jwt/login jwt=ey...
+Vault login with JWT `access_token`:
+```bash
+vault write auth/jwt/login jwt=$(cat jwt.json | jq -r '.access_token')
+Key                  Value
+---                  -----
+token                hvs.CA...
+token_accessor       ***
+token_duration       768h
+token_renewable      true
+token_policies       ["default"]
+identity_policies    ["tenant2_admin" "tenant3_admin" "tenant_admin"]
+policies             ["default" "tenant2_admin" "tenant3_admin" "tenant_admin"]
+token_meta_role      default
 ```
 
 ## How to Grant Role based Access for AppRoles?
