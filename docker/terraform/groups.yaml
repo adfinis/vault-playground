@@ -9,3 +9,8 @@ groups:
     metadata:
       owner: foo@bar.com
       cost_center: FooBar
+  testgroup2:
+    namespaces:
+      tenant: {}
+    metadata:
+      owner: foo2@bar.com
