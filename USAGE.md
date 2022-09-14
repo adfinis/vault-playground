@@ -365,7 +365,7 @@ kubectl get sa vault-kv -n vault-app -o yaml | grep uid
 Run Terraform to provision Vault and Keycloak:
 ```bash
 sudo ${CONTAINER_RUNTIME}-compose rm terraform
-sudo start.sh terraform
+sudo ${CONTAINER_RUNTIME}-compose up -d terraform 
 sudo ${CONTAINER_RUNTIME}-compose logs -f terraform
 ```
 
