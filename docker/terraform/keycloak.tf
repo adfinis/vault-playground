@@ -68,10 +68,29 @@ resource "keycloak_openid_client" "openid_client" {
     "http://vault.${var.container_domain}:8200/ui/vault/auth/oidc/oidc/callback"
   ]
 }
-resource "keycloak_generic_client_protocol_mapper" "groups" {
+
+# Add Vault as OpenID Connect Client for JWT
+resource "keycloak_openid_client" "jwt_client" {
+  realm_id  = keycloak_realm.realm.id
+  client_id = "hashicorp-vault-jwt"
+
+  name    = "HashiCorp Vault vault.${var.container_domain}"
+  enabled = true
+
+  access_type           = "PUBLIC"
+  standard_flow_enabled = true
+  direct_access_grants_enabled = true
+
+  valid_redirect_uris = [
+    "http://localhost:8250/jwt/callback",
+    "http://vault.${var.container_domain}:8200/ui/vault/auth/jwt/oidc/callback"
+  ]
+}
+
+resource "keycloak_generic_client_protocol_mapper" "openid_client_groups" {
   realm_id        = keycloak_realm.realm.id
   client_id       = keycloak_openid_client.openid_client.id
-  name            = "groups"
+  name            = "groups-vault-oidc"
   protocol        = "openid-connect"
   protocol_mapper = "oidc-group-membership-mapper"
   config = {
@@ -82,3 +101,19 @@ resource "keycloak_generic_client_protocol_mapper" "groups" {
     "userinfo.token.claim" = "true"
   }
 }
+
+resource "keycloak_generic_client_protocol_mapper" "jwt_client_groups" {
+  realm_id        = keycloak_realm.realm.id
+  client_id       = keycloak_openid_client.jwt_client.id
+  name            = "groups-vault-jwt"
+  protocol        = "openid-connect"
+  protocol_mapper = "oidc-group-membership-mapper"
+  config = {
+    "access.token.claim"   = "true"
+    "id.token.claim"       = "true"
+    "claim.name"           = "groups"
+    "full.path"            = "false"
+    "userinfo.token.claim" = "true"
+  }
+}
+

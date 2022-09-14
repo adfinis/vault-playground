@@ -24,7 +24,17 @@ resource "vault_jwt_auth_backend" "oidc" {
   oidc_client_id     = keycloak_openid_client.openid_client.client_id
   oidc_client_secret = keycloak_openid_client.openid_client.client_secret
 }
-resource "vault_jwt_auth_backend_role" "keycloak" {
+
+# JWT auth backend
+# - https://www.vaultproject.io/docs/agent/autoauth/methods/jwt
+resource "vault_jwt_auth_backend" "jwt" {
+  path = "jwt"
+  type = "jwt"
+  default_role = "default"
+  oidc_discovery_url = "http://keycloak.${var.container_domain}:8080/auth/realms/${keycloak_realm.realm.realm}"
+}
+
+resource "vault_jwt_auth_backend_role" "oidc-default" {
   backend        = vault_jwt_auth_backend.oidc.path
   role_name      = "default"
   token_policies = ["default"]
@@ -36,6 +46,24 @@ resource "vault_jwt_auth_backend_role" "keycloak" {
   allowed_redirect_uris = [
     "http://vault.${var.container_domain}:8200/ui/vault/auth/oidc/oidc/callback",
     "http://localhost:8250/oidc/callback"
+  ]
+  # verbose_oidc_logging = true
+}
+
+resource "vault_jwt_auth_backend_role" "jwt-default" {
+  backend        = vault_jwt_auth_backend.jwt.path
+  role_name      = "default"
+  token_policies = ["default"]
+
+  user_claim   = "email"
+  groups_claim = "groups"
+  bound_audiences = ["account"]
+
+  role_type    = "jwt"
+  # https://www.vaultproject.io/docs/auth/jwt#redirect-uris
+  allowed_redirect_uris = [
+    "http://vault.${var.container_domain}:8200/ui/vault/auth/jwt/oidc/callback",
+    "http://localhost:8250/jwt/callback"
   ]
   # verbose_oidc_logging = true
 }

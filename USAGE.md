@@ -246,11 +246,11 @@ The [unique mount bound alias](https://www.vaultproject.io/docs/concepts/identit
 | Kubernetes          | Service account UID                                                                  |
 | LDAP                | Username                                                                             |
 
-## How to Grant Group based Access for LDAP/OIDC?
+## How to Grant Group based Access for LDAP/OIDC/JWT?
 
 Example Terraform code is given in [./docker/terraform/vault-identity-ldap-oidc-group-access.tf](./docker/terraform/vault-identity-ldap-oidc-group-access.tf).
 
-Each external group reference the LDAP and OIDC authentication backends with a group alias. The internal groups have external groups from the root namespace as its members. Depending on the use case, policies can be attached to the internal groups in the leaf namespace or the external groups in the root namespace:
+Each external group reference the LDAP and JWT/OIDC authentication backends with a group alias. The internal groups have external groups from the root namespace as its members. Depending on the use case, policies can be attached to the internal groups in the leaf namespace or the external groups in the root namespace:
 
 ```
 Policies Root NS - - - - - - - - >   external       external
@@ -265,13 +265,44 @@ Policies Leaf NS - - - - - - - - >           group
 (managed by NS user)
 ```
 
-## How to Grant User based Access for LDAP/OIDC?
+## How to Grant User based Access for LDAP/OIDC/JWT?
 
 Example Terraform code is given in [`./docker/terraform/vault-identity-ldap-oidc-user-access.tf`](./docker/terraform/vault-identity-ldap-oidc-user-access.tf).
 
 The LDAP user `kv-writer` is granted read/write privilges for the KV engine in the `tenant` namespace.
 
 The access is only granted for LDAP logins, because the Entity Alias is connected to the LDAP auth backend only.
+
+## How to login using JWT token authentication from CLI?
+This playground also has a JWT authentication backend available. Configuration is basically the same as for the OIDC authentication backend. The difference is that a token fetched from keycloak can be used directly to log into Vault.
+
+Fetch token
+```bash
+username=test
+password=test
+curl -s -L -X POST "http://keycloak.${CONTAINER_DOMAIN}:8080/auth/realms/${CONTAINER_DOMAIN//\./-}/protocol/openid-connect/token" \
+-H 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'client_id=hashicorp-vault-jwt' \
+--data-urlencode 'grant_type=password' \
+--data-urlencode 'scope=openid' \
+--data-urlencode "username=${username}" \
+--data-urlencode "password=${password}" > jwt.json
+``` 
+
+Vault login with JWT `access_token`:
+```bash
+vault write auth/jwt/login jwt=$(cat jwt.json | jq -r '.access_token')
+Key                  Value
+---                  -----
+token                hvs.CA...
+token_accessor       ***
+token_duration       768h
+token_renewable      true
+token_policies       ["default"]
+identity_policies    ["tenant2_admin" "tenant3_admin" "tenant_admin"]
+policies             ["default" "tenant2_admin" "tenant3_admin" "tenant_admin"]
+token_meta_role      default
+```
 
 ## How to Grant Role based Access for AppRoles?
 

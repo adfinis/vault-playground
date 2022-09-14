@@ -3,17 +3,33 @@ data "vault_auth_backend" "oidc" {
   path = "oidc"
 }
 
+data "vault_auth_backend" "jwt" {
+  #path = "ldap"
+  path = "jwt"
+}
+
 # For each Admin group, create External groups/aliases
-resource "vault_identity_group" "external_group" {
+resource "vault_identity_group" "oidc_external_group" {
   name     = "${data.vault_auth_backend.oidc.path}-${var.group}-external"
   type     = "external"
   policies = [for k, v in var.namespaces : "${k}_admin"]
   metadata = var.metadata
 }
-resource "vault_identity_group_alias" "group_alias" {
+resource "vault_identity_group_alias" "oidc_group_alias" {
   name           = var.group
   mount_accessor = data.vault_auth_backend.oidc.accessor
-  canonical_id   = vault_identity_group.external_group.id
+  canonical_id   = vault_identity_group.oidc_external_group.id
+}
+resource "vault_identity_group" "jwt_external_group" {
+  name     = "${data.vault_auth_backend.jwt.path}-${var.group}-external"
+  type     = "external"
+  policies = [for k, v in var.namespaces : "${k}_admin"]
+  metadata = var.metadata
+}
+resource "vault_identity_group_alias" "jwt_group_alias" {
+  name           = var.group
+  mount_accessor = data.vault_auth_backend.jwt.accessor
+  canonical_id   = vault_identity_group.jwt_external_group.id
 }
 
 # For each Admin group, create internal group inside the customer namespace
@@ -21,7 +37,8 @@ resource "vault_identity_group" "internal_group" {
   for_each = var.namespaces
   name     = "${each.key}_${vault_identity_group.external_group.name}_admin"
   member_group_ids = [
-    vault_identity_group.external_group.id
+    vault_identity_group.oidc_external_group.id,
+    vault_identity_group.jwt_external_group.id
   ]
   # Map the default policy of the namespace,
   # or any other policy from within the namespace
