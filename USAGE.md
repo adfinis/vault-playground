@@ -1,5 +1,7 @@
 # Usage Instructions
 
+**This is a development environment and should not be used in production!**
+
 ## 1. Vault Enterprise License
 Retrieve a [Vault Enterprise trial license](https://www.hashicorp.com/products/vault/trial).
 
@@ -45,7 +47,7 @@ echo IPA_REALM=${CONTAINER_DOMAIN^^} >> .env
 
 Start FreeIPA, Keycloak, Vault and K3s:
 ```bash
-sudo ${CONTAINER_RUNTIME}-compose up -d
+sudo 01-start.sh
 ```
 
 ## 4. Setup Resolution of Domain Names
@@ -203,24 +205,20 @@ This provides the basis for [authorizing a Kubernetes SA](#How-to-Authorize-Kube
 ## 7. Stop Containers
 
 ```bash
-sudo ${CONTAINER_RUNTIME}-compose down
+sudo 02-stop.sh
 ```
 
 ## 8. Reset and Cleanup the Playground
 
+Run the cleanup script:
+
+```bash
+sudo 03-cleanup.sh
+```
+
+This script removes the local data from the Docker containers in the `./docker` folder and any local Terraform state files from `./docker/terraform`.
+
 Cleanup the hosts file from [step 4](#3-Setup-Resolution-of-Domain-Names).
-
-```bash
-sudo rm -rf docker/{ipa,k3s,keycloak-postgres}
-sudo rm -rf docker/vault/data
-```
-
-Cleanup the Terraform state:
-```bash
-sudo rm -rf docker/terraform/*.tfstate*
-sudo rm -rf docker/terraform/.terraform.lock.hcl
-sudo rm -rf docker/terraform/.terraform
-```
 
 # FAQ
 
@@ -363,7 +361,7 @@ kubectl get sa vault-kv -n vault-app -o yaml | grep uid
 Run Terraform to provision Vault and Keycloak:
 ```bash
 sudo ${CONTAINER_RUNTIME}-compose rm terraform
-sudo ${CONTAINER_RUNTIME}-compose up -d terraform
+sudo ${CONTAINER_RUNTIME}-compose up -d terraform 
 sudo ${CONTAINER_RUNTIME}-compose logs -f terraform
 ```
 
