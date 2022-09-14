@@ -1,6 +1,6 @@
 # Usage Instructions
 
-** This is a development environment and should not be used in production! **
+**This is a development environment and should not be used in production!**
 
 ## 1. Vault Enterprise License
 Retrieve a [Vault Enterprise trial license](https://www.hashicorp.com/products/vault/trial).
