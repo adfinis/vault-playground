@@ -5,9 +5,9 @@ resource "vault_ldap_auth_backend" "ldap" {
   path         = "ldap"
   url          = "ldaps://ipa.${var.container_domain}"
   insecure_tls = true
-  userdn       = "cn=users,cn=accounts,dc=identity,dc=net"
+  userdn       = "cn=users,cn=accounts,dc=${local.container_domain_dc1},dc=${local.container_domain_dc2}"
   userattr     = "uid"
-  groupdn      = "cn=groups,cn=accounts,dc=identity,dc=net"
+  groupdn      = "cn=groups,cn=accounts,dc=${local.container_domain_dc1},dc=${local.container_domain_dc2}"
   groupfilter  = "(|(memberUid={{.Username}})(member={{.UserDN}})(uniqueMember={{.UserDN}}))"
   groupattr    = "cn"
 }
