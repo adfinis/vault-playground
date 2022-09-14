@@ -47,7 +47,7 @@ echo IPA_REALM=${CONTAINER_DOMAIN^^} >> .env
 
 Start FreeIPA, Keycloak, Vault and K3s:
 ```bash
-sudo start.sh
+sudo ./01-start.sh
 ```
 
 ## 4. Setup Resolution of Domain Names
@@ -205,7 +205,7 @@ This provides the basis for [authorizing a Kubernetes SA](#How-to-Authorize-Kube
 ## 7. Stop Containers
 
 ```bash
-sudo stop.sh
+sudo ./02-stop.sh
 ```
 
 ## 8. Reset and Cleanup the Playground
@@ -213,7 +213,7 @@ sudo stop.sh
 Run the cleanup script:
 
 ```bash
-./cleanup.sh
+./03-cleanup.sh
 ```
 
 This script removes the local data from the Docker containers in the `./docker` folder and any local Terraform state files from `./docker/terraform`.
