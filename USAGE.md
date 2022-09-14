@@ -210,19 +210,15 @@ sudo stop.sh
 
 ## 8. Reset and Cleanup the Playground
 
+Run the cleanup script:
+
+```bash
+./cleanup.sh
+```
+
+This script removes the local data from the Docker containers in the `./docker` folder and any local Terraform state files from `./docker/terraform`.
+
 Cleanup the hosts file from [step 4](#3-Setup-Resolution-of-Domain-Names).
-
-```bash
-sudo rm -rf docker/{ipa,k3s,keycloak-postgres}
-sudo rm -rf docker/vault/data
-```
-
-Cleanup the Terraform state:
-```bash
-sudo rm -rf docker/terraform/*.tfstate*
-sudo rm -rf docker/terraform/.terraform.lock.hcl
-sudo rm -rf docker/terraform/.terraform
-```
 
 # FAQ
 
