@@ -1,5 +1,7 @@
 # Usage Instructions
 
+** This is a development environment and should not be used in production! **
+
 ## 1. Vault Enterprise License
 Retrieve a [Vault Enterprise trial license](https://www.hashicorp.com/products/vault/trial).
 
@@ -45,7 +47,7 @@ echo IPA_REALM=${CONTAINER_DOMAIN^^} >> .env
 
 Start FreeIPA, Keycloak, Vault and K3s:
 ```bash
-sudo ${CONTAINER_RUNTIME}-compose up -d
+sudo start.sh
 ```
 
 ## 4. Setup Resolution of Domain Names
@@ -145,7 +147,7 @@ sudo ${CONTAINER_RUNTIME} exec -it vault vault operator unseal $sealkey
 Remove Terraform container and recreate with Vault Token from previous step:
 ```bash
 sudo ${CONTAINER_RUNTIME}-compose stop terraform
-sudo ${CONTAINER_RUNTIME}-compose up -d terraform
+sudo start.sh terraform
 ```
 
 You might need to unseal Vault again (see above). Then start Terraform. Can be started repeatedly:
@@ -183,7 +185,7 @@ Persist it to the file [`docker/terraform/vault-auth-kubernetes.tf`](./docker/te
 Run Terraform to provision Vault and Keycloak:
 ```bash
 sudo ${CONTAINER_RUNTIME}-compose rm terraform
-sudo ${CONTAINER_RUNTIME}-compose up -d terraform
+sudo start.sh terraform
 sudo ${CONTAINER_RUNTIME}-compose logs -f terraform
 ```
 
@@ -203,7 +205,7 @@ This provides the basis for [authorizing a Kubernetes SA](#How-to-Authorize-Kube
 ## 7. Stop Containers
 
 ```bash
-sudo ${CONTAINER_RUNTIME}-compose down
+sudo stop.sh
 ```
 
 ## 8. Reset and Cleanup the Playground
@@ -363,7 +365,7 @@ kubectl get sa vault-kv -n vault-app -o yaml | grep uid
 Run Terraform to provision Vault and Keycloak:
 ```bash
 sudo ${CONTAINER_RUNTIME}-compose rm terraform
-sudo ${CONTAINER_RUNTIME}-compose up -d terraform
+sudo start.sh terraform
 sudo ${CONTAINER_RUNTIME}-compose logs -f terraform
 ```
 
