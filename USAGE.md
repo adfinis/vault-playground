@@ -611,11 +611,11 @@ Also, add two additional Vault nodes, to build a complete 3-node cluster:
 +  vault-1:
 +    image: hashicorp/vault-enterprise:latest
 +    container_name: vault-1
-+    hostname: vault-1.identity.net
++    hostname: vault-1.docker.internal
 +    cap_add:
 +      - IPC_LOCK
 +    networks:
-+      - identity.net
++      - docker.internal
 +    command: server
 +    volumes:
 +      - ./docker/vault/config:/vault/config
@@ -631,11 +631,11 @@ Also, add two additional Vault nodes, to build a complete 3-node cluster:
 +  vault-2:
 +    image: hashicorp/vault-enterprise:latest
 +    container_name: vault-2
-+    hostname: vault-2.identity.net
++    hostname: vault-2.docker.internal
 +    cap_add:
 +      - IPC_LOCK
 +    networks:
-+      - identity.net
++      - vault-playground
 +    command: server
 +    volumes:
 +      - ./docker/vault/config:/vault/config
@@ -654,8 +654,8 @@ For the `terraform` container, add the new TLS API address and skip certificatio
    terraform:
      environment:
        # - TF_LOG=debug
--      - VAULT_ADDR=http://vault.identity.net:8200
-+      - VAULT_ADDR=https://vault.identity.net:8200
+-      - VAULT_ADDR=http://vault.docker.internal:8200
++      - VAULT_ADDR=https://vault.docker.internal:8200
 +      - VAULT_SKIP_VERIFY=1
 ```
 
