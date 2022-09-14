@@ -147,7 +147,7 @@ sudo ${CONTAINER_RUNTIME} exec -it vault vault operator unseal $sealkey
 Remove Terraform container and recreate with Vault Token from previous step:
 ```bash
 sudo ${CONTAINER_RUNTIME}-compose stop terraform
-sudo start.sh terraform
+sudo ${CONTAINER_RUNTIME}-compose up -d terraform
 ```
 
 You might need to unseal Vault again (see above). Then start Terraform. Can be started repeatedly:
@@ -185,7 +185,7 @@ Persist it to the file [`docker/terraform/vault-auth-kubernetes.tf`](./docker/te
 Run Terraform to provision Vault and Keycloak:
 ```bash
 sudo ${CONTAINER_RUNTIME}-compose rm terraform
-sudo start.sh terraform
+sudo ${CONTAINER_RUNTIME}-compose up -d terraform
 sudo ${CONTAINER_RUNTIME}-compose logs -f terraform
 ```
 
