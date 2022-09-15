@@ -91,6 +91,8 @@ echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Netw
 echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} k3s-server.${CONTAINER_DOMAIN}{{end}}" k3s-server) | sudo tee -a /etc/hosts
 echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} grafana.${CONTAINER_DOMAIN}{{end}}" grafana) | sudo tee -a /etc/hosts
 echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} prometheus.${CONTAINER_DOMAIN}{{end}}" prometheus) | sudo tee -a /etc/hosts
+echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} es.${CONTAINER_DOMAIN}{{end}}" es) | sudo tee -a /etc/hosts
+echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} kibana.${CONTAINER_DOMAIN}{{end}}" kibana) | sudo tee -a /etc/hosts
 ```
 
 You need to clean up your `/etc/hosts` after successive runs to remove conflicting entries from previous runs.
@@ -201,6 +203,9 @@ This provides the basis for [authorizing a Kubernetes SA](#How-to-Authorize-Kube
 | Kubernetes API | https://127.0.0.1:6443 | see [How To Kubeconfig](#how-to-get-the-kubeconfig-for-k3s) below |
 | Grafana | http://127.0.0.1:3000 | Username: `admin`, Password: `admin` |
 | Prometheus | http://127.0.0.1:9090 | n/a |
+| Elasticsearch | http://127.0.0.1:9200 | n/a |
+| Kibana | http://127.0.0.1:5601 | n/a |
+| Metricbeat | udp://127.0.0.1:8125 | n/a |
 
 ## 7. Stop Containers
 
@@ -843,3 +848,14 @@ EOF
 > When not enabling globbing for the `bound_claims_type`, the authentication on the feature branches will not work properly and the GitHub action will fail, because the source ref or `job_workflow_ref` ends in `@refs/heads/<NAME_OF_FEATURE_BRANCH>`:
 > * https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#understanding-the-oidc-token
 > * https://github.com/hashicorp/vault-action#jwt-with-github-oidc-tokens
+
+## How to view Metrics in Kibana
+
+Vault can send telemetry data to a [Statsd compatible listener](https://developer.hashicorp.com/vault/docs/configuration/telemetry), for instance, a Metricbeat.
+
+The Metricbeat in trun can send the telemetry data to an Elasticsearch instance.
+
+The metric data from Elasticsearch can be visualized in a Kibana dashboard.
+
+> :info: Alternative to Filebeat and MetricBeat exists, the "Elastic Agents":
+> https://docs.elastic.co/en/integrations/hashicorp_vault

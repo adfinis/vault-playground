@@ -10,7 +10,7 @@ echo "Stopping and removing containers"
 ./stop.sh
 
 # cleanup the docker data
-sudo rm -rf docker/{ipa,k3s,keycloak-postgres}
+sudo rm -rf docker/{ipa,k3s,keycloak-postgres,kibana,es}
 sudo rm -rf docker/vault/data
 
 read -p "Do you really want to cleanup Terraform state [y/N]? " -n 1 -r
