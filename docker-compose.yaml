@@ -205,7 +205,6 @@ services:
     ports:
       - 8125:8125/udp
     environment:
-      # - CONTAINER_DOMAIN=$CONTAINER_DOMAIN
       - setup.kibana.host=kibana.${CONTAINER_DOMAIN}:5601
       - ELASTICSEARCH_HOSTS="es.${CONTAINER_DOMAIN}:9200"
 
