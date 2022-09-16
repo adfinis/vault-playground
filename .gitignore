@@ -3,8 +3,8 @@ vault-keys.json
 docker/ipa
 docker/k3s
 docker/keycloak-postgres
-docker/kibana
-docker/es
+docker/kibana/*
+docker/es/*
 docker/vault/data
 docker/vault/config/tls/*
 docker/terraform/*.tfstate*
