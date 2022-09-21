@@ -35,7 +35,7 @@ resource "vault_identity_group_alias" "jwt_group_alias" {
 # For each Admin group, create internal group inside the customer namespace
 resource "vault_identity_group" "internal_group" {
   for_each = var.namespaces
-  name     = "${each.key}_${vault_identity_group.external_group.name}_admin"
+  name     = "${each.key}_${vault_identity_group.oidc_external_group.name}_admin"
   member_group_ids = [
     vault_identity_group.oidc_external_group.id,
     vault_identity_group.jwt_external_group.id
