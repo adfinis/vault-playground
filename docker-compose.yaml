@@ -72,6 +72,10 @@ services:
     ports:
       - 8200:8200
       - 8201:8201
+    extra_hosts:
+        # Makes this name resolve inside the container for Linux test hosts (used for Statsd Telemetry addresss)
+        # https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host
+      - host.docker.internal:host-gateway
 
   terraform:
     build:
@@ -159,6 +163,50 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
     ports:
       - 9090:9090
+
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    container_name: es
+    hostname: "es.${CONTAINER_DOMAIN}"
+    networks:
+      - vault-playground
+    volumes:
+      - ./docker/es:/usr/share/elasticsearch/data:Z
+    ports:
+      - 9200:9200
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    mem_limit: ${MEM_LIMIT}
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+    container_name: kibana
+    hostname: "kibana.${CONTAINER_DOMAIN}"
+    networks:
+      - vault-playground
+    volumes:
+      - ./docker/kibana:/usr/share/kibana/data:Z
+    ports:
+      - 5601:5601
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es.${CONTAINER_DOMAIN}:9200
+    mem_limit: ${MEM_LIMIT}
+
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:${STACK_VERSION}
+    container_name: metricbeat
+    hostname: "metricbeat.${CONTAINER_DOMAIN}"
+    networks:
+      - vault-playground
+    volumes:
+      - ./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
+      - ./docker/metricbeat/statsd.yml:/usr/share/metricbeat/modules.d/statsd.yml
+    ports:
+      - 8125:8125/udp
+    environment:
+      - setup.kibana.host=kibana.${CONTAINER_DOMAIN}:5601
+      - ELASTICSEARCH_HOSTS="es.${CONTAINER_DOMAIN}:9200"
 
 networks:
   vault-playground:
