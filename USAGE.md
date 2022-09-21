@@ -860,15 +860,14 @@ The metric data from Elasticsearch can be visualized in a Kibana dashboard.
 > :info: Alternative to Filebeat and MetricBeat exists, the "Elastic Agents":
 > https://docs.elastic.co/en/integrations/hashicorp_vault
 
-Export/Import: Go to "Stack Management > Saved Objects" to export/import the dashboard (https://www.elastic.co/guide/en/kibana/current/managing-saved-objects.html)
-
-Todo: Add and test API call here to import the `kibana-dashboard.ndjson` file automatically
-
-https://www.elastic.co/guide/en/kibana/current/saved-objects-api-import.html
+[API call to import](https://www.elastic.co/guide/en/kibana/current/saved-objects-api-import.html) the `kibana-dashboard.ndjson` file automatically:
 
 ```bash
-curl -XPOST "http://127.0.0.1:5601/api/saved_objects/_import -H "kbn-xsrf: true" -d @kibana-dashboard.ndjson"
+curl -X POST http://127.0.0.1:5601/api/saved_objects/_import -H "kbn-xsrf: true" --form file=@kibana-dashboard.ndjson
 ```
+
+> Manual export/import: Go to "Stack Management > Saved Objects" to export/import the dashboard (https://www.elastic.co/guide/en/kibana/current/managing-saved-objects.html)
+
 
 The provided `kibana-dashboard.ndjson` file creates the following objects:
 * HashiCorp Vault Data View which is setup for the index pattern `metricbeat*` for exploring the metrics coming from Metricbeat
