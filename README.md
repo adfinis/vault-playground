@@ -9,7 +9,7 @@ The repository currently focuses on integration with the following authenticatio
 - OpenID Connect (OIDC, Keycloak container)
 - LDAP (FreeIPA container)
 - Kubernetes API (K3s container)
-- GitHub Workflows
+- GitHub Actions
 
 ## Prerequisites
 
