@@ -152,9 +152,22 @@ sudo ${CONTAINER_RUNTIME}-compose stop terraform
 sudo ${CONTAINER_RUNTIME}-compose up -d terraform
 ```
 
+Check Terraform container logs:
+```bash
+sudo ${CONTAINER_RUNTIME}-compose logs -f terraform
+```
+
 You might need to unseal Vault again (see above). Then start Terraform. Can be started repeatedly:
 ```bash
 sudo ${CONTAINER_RUNTIME}-compose start terraform
+```
+
+Or stop and delete the container manually:
+```bash
+sudo ${CONTAINER_RUNTIME}-compose stop terraform
+sudo ${CONTAINER_RUNTIME}-compose rm -f terraform
+sudo ${CONTAINER_RUNTIME}-compose up -d terraform
+
 ```
 
 Provision the 389 directory with the test users and groups:

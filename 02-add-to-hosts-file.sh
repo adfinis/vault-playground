@@ -9,6 +9,8 @@ mkdir -p backup
 cp /etc/hosts backup/hosts
 
 # cleanup the hosts file
+
+sudo sed -i '' /etc/hosts 
 sudo sed -i '/### vault playground start ###/,/### vault playground end ###/d' /etc/hosts 
 
 

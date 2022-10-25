@@ -1,9 +1,12 @@
 #!/bin/bash
 
+
+
 # get container runntime
 CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 # the .env file will overwrite the environment variables
 test -f .env && source .env
+
 
 
 # message
@@ -23,6 +26,13 @@ then
 else
     echo -e "${RED}$(cowsay -f stegosaurus ${MESSAGE})${NC}"
 fi
+
+# manually build the terraform image
+if [ "$CONTAINER_RUNTIME" == "podman" ]; then
+    sudo podman build --network=host ./terraform-dockerfile
+fi
+
+
 
 # run containers
 $CONTAINER_RUNTIME-compose up -d

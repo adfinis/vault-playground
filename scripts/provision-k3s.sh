@@ -4,6 +4,13 @@
 set -o nounset
 # set -o xtrace
 
+#load the environment variables
+CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
+CONTAINER_DOMAIN=${CONTAINER_DOMAIN:-docker}
+
+test -f .env && source .env
+
+
 # Use kubeconfig of the k3s container
 export KUBECONFIG=$PWD/docker/k3s/output/kubeconfig.yaml
 
@@ -20,7 +27,7 @@ VAULT_ADDR="http://vault.${CONTAINER_DOMAIN}:8200"
 
 # Patch CoreDNS to resolve the Vault Docker container name
 # https://coredns.io/2017/06/08/how-queries-are-processed-in-coredns
-VAULT_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' vault)
+VAULT_IP=$(${CONTAINER_RUNTIME} inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' vault)
 kubectl patch configmap/coredns -n kube-system --patch "$(cat <<EOF
 data:
   Corefile: |

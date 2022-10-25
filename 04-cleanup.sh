@@ -7,7 +7,7 @@ then
 fi
 
 echo "Stopping and removing containers"
-./stop.sh
+./03-stop.sh
 
 # cleanup the docker data
 sudo rm -rf docker/{ipa,k3s,keycloak-postgres,kibana,es}
