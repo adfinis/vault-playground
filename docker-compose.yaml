@@ -72,10 +72,12 @@ services:
     ports:
       - 8200:8200
       - 8201:8201
-    # extra_hosts:
+    extra_hosts:
+    #     # only used in docker
     #     # Makes this name resolve inside the container for Linux test hosts (used for Statsd Telemetry addresss)
     #     # https://docs.docker.com/desktop/networking/#i-want-to-connect-from-a-container-to-a-service-on-the-host
-    #   - host.docker.internal:host-gateway
+     - host.docker.internal:host-gateway
+
 
   terraform:
     build:
