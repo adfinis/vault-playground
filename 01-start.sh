@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # message
 MESSAGE="This is a development environment and should not be used in production!"
 RED='\033[0;31m'
@@ -19,9 +20,16 @@ CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
 test -f .env && source .env
 
 
-
+#adjust the docker-compose.yml file and vault config
 if [ "$CONTAINER_RUNTIME" == "podman" ]; then
-    sudo podman build --network=host ./terraform-dockerfile
+    sudo sed -i 's/statsd_address =.*$/statsd_address = '"host.containers.internal:8125"'/g' ./docker/vault/config/statsd-telemetry.hcl
+    sed -i 's/extra_hosts:.*$/# extra_hosts:/g' docker-compose.yaml
+    sed -i 's/  - host.docker.internal:host-gateway.*$/#  - host.docker.internal:host-gateway/g' docker-compose.yaml
+fi
+else if [ "$CONTAINER_RUNTIME" == "docker" ]; then
+    sudo sed -i 's/statsd_address =.*$/statsd_address = '"host.docker.internal:8125"'/g' ./docker/vault/config/statsd-telemetry.hcl
+    sed -i 's/# extra_hosts:.*$/extra_hosts:/g' docker-compose.yaml
+    sed -i 's/#  - host.docker.internal:host-gateway.*$/  - host.docker.internal:host-gateway/g' docker-compose.yaml
 fi
 
 
