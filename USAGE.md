@@ -52,7 +52,7 @@ It is also required when switching from podman to docker or vice versa.
 
 Start FreeIPA, Keycloak, Vault and K3s:
 ```bash
-sudo 01-start.sh
+sudo ./01-start.sh
 ```
 
 ## 4. Setup Resolution of Domain Names
