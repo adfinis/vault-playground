@@ -22,7 +22,7 @@ services:
       depends_on:
         - keycloak-postgres
   keycloak-postgres:
-      image: docker.io/library/postgres
+      image: docker.io/library/postgres:14.0-alpine
       container_name: keycloak-postgres
       hostname: "keycloak-postgres.${CONTAINER_DOMAIN}"
       networks:
@@ -171,7 +171,7 @@ services:
     networks:
       - vault-playground
     volumes:
-      - ./docker/es:/usr/share/elasticsearch/data:Z
+      - ./docker/es:/usr/share/elasticsearch/data:Z,U
     ports:
       - 9200:9200
     environment:
@@ -186,7 +186,7 @@ services:
     networks:
       - vault-playground
     volumes:
-      - ./docker/kibana:/usr/share/kibana/data:Z
+      - ./docker/kibana:/usr/share/kibana/data:Z,U
     ports:
       - 5601:5601
     environment:
@@ -200,8 +200,8 @@ services:
     networks:
       - vault-playground
     volumes:
-      - ./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
-      - ./docker/metricbeat/statsd.yml:/usr/share/metricbeat/modules.d/statsd.yml
+      - ./docker/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:Z,U
+      - ./docker/metricbeat/statsd.yml:/usr/share/metricbeat/modules.d/statsd.yml:Z,U
     ports:
       - 8125:8125/udp
     environment:

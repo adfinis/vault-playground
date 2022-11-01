@@ -45,6 +45,11 @@ echo IPA_REALM=${CONTAINER_DOMAIN^^} >> .env
 
 ## 3. Start Containers
 
+The 01-start.sh will use docker or podman-compose to start the containers. 
+The script is required for podman because it patches the docker-compose file and the vault configuration file in ` ./docker/vault/config/statsd-telemetry.hcl`.
+It is also required when switching from podman to docker or vice versa.
+
+
 Start FreeIPA, Keycloak, Vault and K3s:
 ```bash
 sudo 01-start.sh
@@ -144,11 +149,24 @@ Remove Terraform container and recreate with Vault Token from previous step:
 sudo ${CONTAINER_RUNTIME}-compose stop terraform
 sudo ${CONTAINER_RUNTIME}-compose up -d terraform
 ```
+Check Terraform container logs:
+```bash
+sudo ${CONTAINER_RUNTIME}-compose logs -f terraform
+```
 
 You might need to unseal Vault again (see above). Then start Terraform. Can be started repeatedly:
 ```bash
 sudo ${CONTAINER_RUNTIME}-compose start terraform
 ```
+
+
+Or stop and delete the container manually:
+```bash
+sudo ${CONTAINER_RUNTIME}-compose stop terraform
+sudo ${CONTAINER_RUNTIME}-compose rm -f terraform
+sudo ${CONTAINER_RUNTIME}-compose up -d terraform
+```
+
 
 Provision the 389 directory with the test users and groups:
 ```bash
