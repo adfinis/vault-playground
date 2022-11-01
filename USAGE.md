@@ -82,20 +82,13 @@ nmcli c mod ${CONTAINER_RUNTIME_IF} ipv4.dns-search ${CONTAINER_DOMAIN}
 ```
 
 ### Option 2: Static configuration using hosts file
-Add a static A record for the container hosting FreeIPA, Keycloak and Vault. Alternatively, adjust your `/etc/hosts` file accordingly:
-
+You can add a static record for every container to your `/etc/hosts` file with the 02-add-hosts.sh script.
 ```bash
-echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} ipa.${CONTAINER_DOMAIN}{{end}}" ipa) | sudo tee -a /etc/hosts
-echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} keycloak.${CONTAINER_DOMAIN}{{end}}" keycloak) | sudo tee -a /etc/hosts
-echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} vault.${CONTAINER_DOMAIN}{{end}}" vault) | sudo tee -a /etc/hosts
-echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} k3s-server.${CONTAINER_DOMAIN}{{end}}" k3s-server) | sudo tee -a /etc/hosts
-echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} grafana.${CONTAINER_DOMAIN}{{end}}" grafana) | sudo tee -a /etc/hosts
-echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} prometheus.${CONTAINER_DOMAIN}{{end}}" prometheus) | sudo tee -a /etc/hosts
-echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} es.${CONTAINER_DOMAIN}{{end}}" es) | sudo tee -a /etc/hosts
-echo -e $(sudo -E ${CONTAINER_RUNTIME} inspect -f "{{range .NetworkSettings.Networks}}{{.IPAddress}} kibana.${CONTAINER_DOMAIN}{{end}}" kibana) | sudo tee -a /etc/hosts
+sudo ./02-add-hosts.sh
 ```
-
-You need to clean up your `/etc/hosts` after successive runs to remove conflicting entries from previous runs.
+This will add all the necessary entries to your `/etc/hosts` file between 2 Tags. Old entries will be replaced.
+The 04-clean-up.sh script also will remove the entries.
+If something would go wrong with the cleanup, a backup of the original `/etc/hosts` file will be created in `./backup`.
 
 ## 5. Provision Test Identity/Group Data
 

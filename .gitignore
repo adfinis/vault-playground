@@ -1,5 +1,6 @@
 vault-keys.json
 *.hclic
+backup
 docker/ipa
 docker/k3s
 docker/keycloak-postgres

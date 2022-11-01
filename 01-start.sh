@@ -2,6 +2,9 @@
 
 # get container runntime
 CONTAINER_RUNTIME=${CONTAINER_RUNTIME:-docker}
+# the .env file will overwrite the environment variables
+test -f .env && source .env
+
 
 # message
 MESSAGE="This is a development environment and should not be used in production!"
