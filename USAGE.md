@@ -82,8 +82,7 @@ nmcli c mod ${CONTAINER_RUNTIME_IF} ipv4.dns-search ${CONTAINER_DOMAIN}
 ```
 
 ### Option 2: Static configuration using hosts file
-Add a static A record for the container hosting FreeIPA, Keycloak and Vault. Alternatively, adjust your `/etc/hosts` file accordingly:
-
+You can add a static record for every container to your `/etc/hosts` file with the 02-add-hosts.sh script.
 ```bash
 sudo ./02-add-hosts.sh
 ```
