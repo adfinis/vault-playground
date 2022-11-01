@@ -7,7 +7,7 @@ then
 fi
 
 echo "Stopping and removing containers"
-./stop.sh
+./03-stop.sh
 
 # cleanup the docker data
 sudo rm -rf docker/{ipa,k3s,keycloak-postgres,kibana,es}
@@ -23,3 +23,7 @@ fi
 sudo rm -rf docker/terraform/*.tfstate*
 sudo rm -rf docker/terraform/.terraform.lock.hcl
 sudo rm -rf docker/terraform/.terraform
+
+# cleanup the hosts file
+sudo sed -i '/### vault playground start ###/,/### vault playground end ###/d' /etc/hosts 
+echo "If /etc/hosts file got cleanup incorrectly, please restore it from backup/hosts"
