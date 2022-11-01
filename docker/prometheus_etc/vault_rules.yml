@@ -14,7 +14,7 @@ groups:
     - alert: VaultAutopilotNodeHealthy
       # Set to 1 if Autopilot considers all nodes healthy
       # https://www.vaultproject.io/docs/internals/telemetry#integrated-storage-raft-autopilot
-      # https://github.com/adfinis-sygroup/helm-charts/blob/main/charts/vault-monitoring/values.yaml
+      # https://github.com/adfinis/helm-charts/blob/main/charts/vault-monitoring/values.yaml
       expr: vault_autopilot_healthy < 1
       for: 1m
       labels:

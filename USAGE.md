@@ -838,7 +838,7 @@ vault write auth/github-workflow/role/default -<<EOF
     "repository": "adfinis-sygroup/vault-playground",
     "job_workflow_ref": "adfinis-sygroup/vault-playground/.github/workflows/vault.yml*"
   },
-  "bound_audiences": "https://github.com/adfinis-sygroup"
+  "bound_audiences": "https://github.com/adfinis"
 }
 EOF
 ````
