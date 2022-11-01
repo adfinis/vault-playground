@@ -25,5 +25,5 @@ resource "vault_jwt_auth_backend_role" "github-workflow" {
     repository       = "adfinis-sygroup/vault-playground"
     job_workflow_ref = "adfinis-sygroup/vault-playground/.github/workflows/vault.yml*"
   }
-  bound_audiences = ["https://github.com/adfinis-sygroup"]
+  bound_audiences = ["https://github.com/adfinis"]
 }

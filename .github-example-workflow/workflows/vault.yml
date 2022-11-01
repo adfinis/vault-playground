@@ -21,7 +21,7 @@ jobs:
           method: jwt
           path: github-workflow
           role: default
-          jwtGithubAudience: https://github.com/adfinis-sygroup
+          jwtGithubAudience: https://github.com/adfinis
           exportToken: true
           secrets: |
             auth/token/lookup-self display_name | NAME ;
