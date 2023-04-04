@@ -1,6 +1,6 @@
 > :information_source: **Playground has moved**
 >
-> This playground moved to [Vault-Playground-on-Kubernetes](https://github.com/adfinis/vault-playground). The Vault specific instructions in [USAGE.md](./USAGE.md) are still applicable to some degree.
+> This playground moved to [Vault-Playground-on-Kubernetes](Vault-Playground-on-Kubernetes). The Vault specific instructions in [USAGE.md](./USAGE.md) are still applicable to some degree.
 
 # Vault Identity and Group Management Playground
 
