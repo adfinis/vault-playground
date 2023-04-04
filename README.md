@@ -1,3 +1,7 @@
+> :information_source: **Playground has moved**
+>
+> This playground moved to [Vault-Playground-on-Kubernetes](https://github.com/adfinis/vault-playground). The Vault specific instructions in [USAGE.md](./USAGE.md) are still applicable to some degree.
+
 # Vault Identity and Group Management Playground
 
 This repository provides a playground and some Terraform bootstrap code to experiment and explore identity and group management with HashiCorp Vault.
